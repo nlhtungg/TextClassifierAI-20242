@@ -16,7 +16,7 @@ def predict():
     result = predict_model.predict(text)
     print(f"Received text: {text}")
     print(f"Prediction result: {result}")
-    return jsonify({"label": result})
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(debug=True)
