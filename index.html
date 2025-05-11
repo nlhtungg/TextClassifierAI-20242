@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Classifier AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ===== CSS ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+    
+    :root {
+      --primary-color: #2d5af6;
+      --secondary-color: #0cce6b;
+      --bg-dark: #111827;
+      --bg-card: #1f2937;
+      --text-light: #f9fafb;
+      --text-secondary: #9ca3af;
+      --accent: #10b981;
+      --danger: #ef4444;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #0f172a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: var(--text-light);
+    }
+    
+    .container {
+      background-color: var(--bg-card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    h1 {
+      margin-top: 10px;
+      font-weight: 700;
+      color: var(--text-light);
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+    }
+    
+    h1 i {
+      color: var(--secondary-color);
+      margin-right: 8px;
+    }
+    
+    #inputText {
+      width: 100%;
+      padding: 16px 20px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 1.05rem;
+      background-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    #inputText:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--primary-color);
+    }
+    
+    #inputText::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    #checkBtn {
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+    }
+    
+    #checkBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(45, 90, 246, 0.4);
+    }
+    
+    #checkBtn:active {
+      transform: translateY(0);
+    }
+    
+    #result-container {
+      margin-top: 25px;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .result-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    #result {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'Source Code Pro', monospace;
+      position: relative;
+      padding: 8px 16px;
+      border-radius: 4px;
+      background-color: rgba(16, 185, 129, 0.1);
+      min-width: 120px;
+    }
+    
+    .loading-animation {
+      display: none;
+      margin: 0 auto 10px;
+    }
+    
+    .loading-animation span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background-color: var(--secondary-color);
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+    
+    .loading-animation span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .loading-animation span:nth-child(3) {
+      animation-delay: 0.4s;
+      margin-right: 0;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(0.6);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    footer {
+      margin-top: 25px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        width: 85%;
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+    /* ===== End CSS ===== */  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-robot"></i> News Classifier</h1>
+    <textarea id="inputText" placeholder="Enter news content to classify..." rows="4"></textarea>
+    <button id="checkBtn"><i class="fas fa-brain"></i> Analyze</button>
+    
+    <div id="result-container">
+      <div class="loading-animation" id="loadingAnimation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="result-label">Classification Result</div>
+      <div id="result">—</div>
+    </div>
+    
+    <footer>
+      Powered by 4 Dogs &copy; 2025
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("checkBtn").onclick = () => {
+      const text = document.getElementById("inputText").value;
+      
+      if (!text.trim()) {
+        document.getElementById("result").innerText = "Please enter text";
+        document.getElementById("result").style.color = "var(--danger)";
+        return;
+      }
+      
+      // Show loading animation
+      document.getElementById("loadingAnimation").style.display = "block";
+      document.getElementById("result").innerText = "Analyzing...";
+      document.getElementById("result").style.color = "var(--text-secondary)";
+      
+      fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Hide loading animation
+        document.getElementById("loadingAnimation").style.display = "none";
+        document.getElementById("result").innerText = data.label;
+        document.getElementById("result").style.color = "var(--accent)";
+      })      .catch(err => {
+        console.error(err);
+        document.getElementById("loadingAnimation").style.display = "none";
+        document.getElementById("result").innerText = "Error";
+        document.getElementById("result").style.color = "var(--danger)";
+      });
+    };
+  </script>
+</body>
+</html>
