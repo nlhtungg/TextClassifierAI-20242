@@ -1,15 +1,13 @@
-from setup_models_util import setup_models_on_server # Or your actual filename
-
-# Attempt to download and set up models when the app starts
-# This needs to happen BEFORE predict.py (and its model loading) is imported
-if not setup_models_on_server():
-    # You might want to raise an error or prevent the app from starting
-    print("CRITICAL: Failed to setup models. Application might not function correctly.")
-    # For a production app, you might sys.exit(1) or use a more robust error handling
-
 from flask import Flask, render_template, request, jsonify
-from predict import predict_category, w2v_model  
+from predict import predict_category, initialize_models
 import time
+from setup_models_util import setup_models_on_server
+
+# Ensure models are downloaded and ready
+setup_models_on_server()
+
+# Initialize/load models into memory
+initialize_models()
 
 app = Flask(__name__)
 
@@ -23,8 +21,8 @@ def predict():
     input_text = data.get('text', '')
     if input_text.strip():
         start_time = time.time()
-        # Assuming predict_category and w2v_model are correctly imported and loaded
-        category = predict_category(input_text, w2v_model)
+        # predict_category will now use globally loaded models
+        category = predict_category(input_text)
         end_time = time.time()
         processing_time = round(end_time - start_time, 2)
         return jsonify({'category': category, 'processing_time': processing_time})
