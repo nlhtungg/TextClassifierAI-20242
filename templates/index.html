@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Classifier AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ===== CSS ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+    
+    :root {
+      --primary-color: #2d5af6;
+      --secondary-color: #0cce6b;
+      --bg-dark: #111827;
+      --bg-card: #1f2937;
+      --text-light: #f9fafb;
+      --text-secondary: #9ca3af;
+      --accent: #10b981;
+      --danger: #ef4444;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #0f172a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: var(--text-light);
+    }
+    
+    .container {
+      background-color: var(--bg-card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    h1 {
+      margin-top: 10px;
+      font-weight: 700;
+      color: var(--text-light);
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+    }
+    
+    h1 i {
+      color: var(--secondary-color);
+      margin-right: 8px;
+    }
+    
+    #inputText {
+      width: 100%;
+      padding: 16px 20px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 1.05rem;
+      background-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    #inputText:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--primary-color);
+    }
+    
+    #inputText::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    #checkBtn {
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+    }
+    
+    #checkBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(45, 90, 246, 0.4);
+    }
+    
+    #checkBtn:active {
+      transform: translateY(0);
+    }
+    
+    #result-container {
+      margin-top: 25px;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .result-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+      #result-details {
+      width: 100%;
+    }
+    
+    .result-item {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'Source Code Pro', monospace;
+      position: relative;
+      padding: 8px 16px;
+      border-radius: 4px;
+      background-color: rgba(16, 185, 129, 0.1);
+      margin-bottom: 10px;
+      text-transform: capitalize;
+    }
+      /* Confidence bar removed */
+    
+    .result-info {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+    
+    .loading-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .loading-animation {
+      margin: 0 auto 10px;
+    }
+    
+    .loading-animation span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background-color: var(--secondary-color);
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+    
+    .loading-animation span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .loading-animation span:nth-child(3) {
+      animation-delay: 0.4s;
+      margin-right: 0;
+    }
+    
+    .loading-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+    
+    .typing-effect::after {
+      content: '|';
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(0.6);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    footer {
+      margin-top: 25px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        width: 85%;
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+    /* ===== End CSS ===== */  </style>
+</head>
+<body>  <div class="container">
+    <h1><i class="fas fa-robot"></i> News Classifier</h1>
+    <textarea id="inputText" placeholder="Enter news content to classify..." rows="4"></textarea>
+    <button id="checkBtn"><i class="fas fa-brain"></i> Analyze</button>
+    
+    <div id="result-container">
+      <div class="loading-container" id="loadingContainer">
+        <div class="loading-animation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="loading-text typing-effect" id="loadingText">Analyzing content</div>
+      </div>
+      
+      <div id="result-content">
+        <div class="result-label">Classification Result</div>
+        <div id="result-details">          <div class="result-item" id="categoryResult">—</div>
+          <div class="result-info">
+            <span>Processing time</span>
+            <span id="processingTime">0.00s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      Powered by AI Classification Technology &copy; 2025
+    </footer>
+  </div>
+  <script>
+    // Loading text animation
+    function startLoadingTextAnimation() {
+      const loadingText = document.getElementById("loadingText");
+      const baseText = "Analyzing content";
+      let dots = 0;
+      
+      return setInterval(() => {
+        dots = (dots + 1) % 4;
+        loadingText.textContent = baseText + ".".repeat(dots);
+      }, 500);
+    }
+    
+    // Handle button click
+    document.getElementById("checkBtn").addEventListener("click", () => {      const text = document.getElementById("inputText").value;
+      const loadingContainer = document.getElementById("loadingContainer");
+      const resultContent = document.getElementById("result-content");
+      const categoryResult = document.getElementById("categoryResult");
+      const processingTime = document.getElementById("processingTime");
+      
+      // Reset previous results
+      categoryResult.textContent = "—";
+      processingTime.textContent = "0.00s";
+      
+      if (!text.trim()) {
+        categoryResult.innerText = "Please enter text";
+        categoryResult.style.color = "var(--danger)";
+        categoryResult.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+        return;
+      }
+      
+      // Show loading animation and hide results
+      loadingContainer.style.display = "flex";
+      resultContent.style.opacity = "0.5";
+      
+      // Start loading text animation
+      const loadingAnimation = startLoadingTextAnimation();
+      
+      // Disable button during process
+      const checkBtn = document.getElementById("checkBtn");
+      checkBtn.disabled = true;
+      checkBtn.style.opacity = "0.7";
+      checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing';
+      
+      fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Stop the loading text animation
+        clearInterval(loadingAnimation);
+        
+        // Wait a bit to show the loading effect (for very fast responses)
+        setTimeout(() => {
+          // Hide loading animation
+          loadingContainer.style.display = "none";
+          resultContent.style.opacity = "1";
+            // Update the results
+          categoryResult.innerText = data.category;
+          categoryResult.style.color = "var(--accent)";
+          categoryResult.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+          
+          // Set processing time
+          processingTime.textContent = `${data.processing_time}s`;
+          
+          // Re-enable button
+          checkBtn.disabled = false;
+          checkBtn.style.opacity = "1";
+          checkBtn.innerHTML = '<i class="fas fa-brain"></i> Analyze';
+        }, 500);
+      })
+      .catch(err => {
+        // Stop the loading text animation
+        clearInterval(loadingAnimation);
+        
+        console.error(err);
+        loadingContainer.style.display = "none";
+        resultContent.style.opacity = "1";
+        
+        categoryResult.innerText = "Error";
+        categoryResult.style.color = "var(--danger)";
+        categoryResult.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+        
+        // Re-enable button
+        checkBtn.disabled = false;
+        checkBtn.style.opacity = "1";
+        checkBtn.innerHTML = '<i class="fas fa-brain"></i> Analyze';
+      });
+    });
+  </script>
+</body>
+</html>
