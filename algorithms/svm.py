@@ -1,0 +1,33 @@
+class LinearSVM:
+    def __init__(self, lr=0.001, n_iters=1000, C=1.0):
+        self.lr = lr
+        self.n_iters = n_iters
+        self.C = C  # hệ số điều chuẩn
+        self.w = None
+        self.b = 0
+
+    def fit(self, X, y):
+        # y phải là +1 hoặc -1
+        n_samples, n_features = len(X), len(X[0])
+        self.w = [0.0 for _ in range(n_features)]
+        for _ in range(self.n_iters):
+            dw = [0.0]*n_features
+            db = 0.0
+            for xi, yi in zip(X, y):
+                condition = yi * (sum(wi*xi_j for wi, xi_j in zip(self.w, xi)) + self.b)
+                if condition < 1:
+                    # sub-gradient
+                    for j in range(n_features):
+                        dw[j] += -yi * xi[j]
+                    db += -yi
+                # cộng gradient của regularization
+                for j in range(n_features):
+                    dw[j] += 2 * self.w[j]
+            # cập nhật
+            for j in range(n_features):
+                self.w[j] -= self.lr * (dw[j] / n_samples)
+            self.b -= self.lr * (db / n_samples)
+
+    def predict(self, X):
+        preds = [sum(wi*xi_j for wi, xi_j in zip(self.w, xi)) + self.b for xi in X]
+        return [1 if p >= 0 else -1 for p in preds]
