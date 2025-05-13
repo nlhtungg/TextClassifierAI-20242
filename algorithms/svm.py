@@ -1,33 +1,28 @@
-class LinearSVM:
-    def __init__(self, lr=0.001, n_iters=1000, C=1.0):
-        self.lr = lr
-        self.n_iters = n_iters
-        self.C = C  # hệ số điều chuẩn
-        self.w = None
-        self.b = 0
+class RandomForest:
+    def __init__(self, n_trees=10, max_depth=5, min_samples_split=2, sample_size=None):
+        self.n_trees = n_trees
+        self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
+        self.sample_size = sample_size
+        self.trees = []
+
+    def _sample(self, X, y):
+        n = len(X) if self.sample_size is None else self.sample_size
+        idxs = [random.randrange(len(X)) for _ in range(n)]
+        return [X[i] for i in idxs], [y[i] for i in idxs]
 
     def fit(self, X, y):
-        # y phải là +1 hoặc -1
-        n_samples, n_features = len(X), len(X[0])
-        self.w = [0.0 for _ in range(n_features)]
-        for _ in range(self.n_iters):
-            dw = [0.0]*n_features
-            db = 0.0
-            for xi, yi in zip(X, y):
-                condition = yi * (sum(wi*xi_j for wi, xi_j in zip(self.w, xi)) + self.b)
-                if condition < 1:
-                    # sub-gradient
-                    for j in range(n_features):
-                        dw[j] += -yi * xi[j]
-                    db += -yi
-                # cộng gradient của regularization
-                for j in range(n_features):
-                    dw[j] += 2 * self.w[j]
-            # cập nhật
-            for j in range(n_features):
-                self.w[j] -= self.lr * (dw[j] / n_samples)
-            self.b -= self.lr * (db / n_samples)
+        self.trees = []
+        for _ in range(self.n_trees):
+            X_samp, y_samp = self._sample(X, y)
+            tree = DecisionTree(max_depth=self.max_depth, min_samples_split=self.min_samples_split)
+            tree.tree = tree.fit(X_samp, y_samp)
+            self.trees.append(tree)
 
     def predict(self, X):
-        preds = [sum(wi*xi_j for wi, xi_j in zip(self.w, xi)) + self.b for xi in X]
-        return [1 if p >= 0 else -1 for p in preds]
+        tree_preds = [tree.predict(X) for tree in self.trees]
+        preds = []
+        for i in range(len(X)):
+            votes = [tree_preds[t][i] for t in range(self.n_trees)]
+            preds.append(Counter(votes).most_common(1)[0][0])
+        return preds
